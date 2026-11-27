@@ -1,10 +1,23 @@
 import { createLocationData } from './location-data.js';
 import { createLocationPanel } from './location-panel.js';
+import { createSoilData } from './soil-data.js';
 
 export function bindLocation(leaflet, map) {
   const panel = document.getElementById('info');
-  const view = createLocationPanel(document.getElementById('locationTabs'), document.getElementById('infoContent'));
-  const selectData = createLocationData(view.update);
+  let locationValues = {};
+  let soilValues = {};
+  const soil = createSoilData(values => {
+    soilValues = values;
+    view.update({ ...locationValues, ...soilValues });
+  });
+  const view = createLocationPanel(document.getElementById('locationTabs'), document.getElementById('infoContent'), {
+    onTabChange: tab => soil.setVisible(tab === 'soil'),
+    onSoilDepthChange: soil.setDepth,
+  });
+  const selectData = createLocationData(values => {
+    locationValues = values;
+    view.update({ ...locationValues, ...soilValues });
+  });
   const title = document.getElementById('infoTitle');
   const locateButton = document.getElementById('btnLocate');
   const gpsStatus = document.getElementById('gpsStatus');
@@ -36,6 +49,7 @@ export function bindLocation(leaflet, map) {
     marker = leaflet.marker(point).addTo(map);
     panel.hidden = false;
     view.overview(accuracy);
+    soil.selectPoint(point);
     selectData(point, accuracy);
     if (trigger) title.focus({ preventScroll: true });
     if (changed) for (const notify of listeners) notify();
@@ -70,6 +84,7 @@ export function bindLocation(leaflet, map) {
 
   function closeInfo() {
     panel.hidden = true;
+    soil.setVisible(false);
     if (focusReturn?.getClientRects().length && !focusReturn.disabled) focusReturn.focus();
     else document.getElementById('menuToggle').focus();
   }

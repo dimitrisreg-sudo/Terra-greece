@@ -1,4 +1,5 @@
-import { DATA_TYPES, ELEVATION_SOURCE, FIELDS, GEOLOGY_SOURCE, TABS } from './fields.js';
+import { SOIL_DEPTHS } from './soil-data.js';
+import { DATA_TYPES, ELEVATION_SOURCE, FIELDS, GEOLOGY_SOURCE, SOIL_SOURCE, TABS, WRB_SOURCE } from './fields.js';
 
 const UNAVAILABLE = 'Δεν υπάρχουν ακόμη διαθέσιμα δεδομένα';
 const STATUS = {
@@ -33,7 +34,8 @@ function fieldView(id) {
   const value = element('div', '', 'science-value');
   const type = element('span', '', 'science-type');
   heading.append(element('h3', field.label), details);
-  row.append(heading, value, type);
+  const uncertainty = element('div', '', 'science-uncertainty muted');
+  row.append(heading, value, type, uncertainty);
 
   let lastResult;
   function update(result) {
@@ -49,6 +51,10 @@ function fieldView(id) {
     const provenance = DATA_TYPES[result?.type ?? field.type];
     type.textContent = state === 'available' ? provenance?.[0] ?? '' : '';
     type.hidden = !type.textContent;
+    uncertainty.textContent = result?.interval
+      ? `Διάστημα πρόβλεψης 90%: ${result.uncertainty}${unit ? ' ' + unit : ''}`
+      : result?.uncertainty || '';
+    uncertainty.hidden = !uncertainty.textContent;
 
     const source = result?.source ?? field.source;
     documentation.replaceChildren(element('p', field.definition));
@@ -63,6 +69,7 @@ function fieldView(id) {
       ['Πρωτογενής αναφορά', source.citation],
       ['Περίοδος αναφοράς', source.period],
       ['Χωρική ανάλυση', source.resolution],
+      ['Βάθος', result?.depth ? result.depth.replace('-', '–') + ' cm' : ''],
       ['Κλίμακα χάρτη (όπως παρέχεται)', source.scale],
       ['Μέθοδος', source.methodology],
       ['Περιορισμοί', source.limitations],
@@ -77,7 +84,7 @@ function fieldView(id) {
 function documentationSection() {
   const details = element('details', '', 'science-sources');
   const list = element('ul');
-  for (const source of [ELEVATION_SOURCE, GEOLOGY_SOURCE, FIELDS.accuracy.source]) {
+  for (const source of [ELEVATION_SOURCE, GEOLOGY_SOURCE, SOIL_SOURCE, WRB_SOURCE, FIELDS.accuracy.source]) {
     const item = element('li');
     item.append(sourceLink(source));
     list.append(item);
@@ -91,7 +98,21 @@ function documentationSection() {
   return details;
 }
 
-export function createLocationPanel(tablist, content) {
+function soilDepthField(onChange) {
+  const label = element('label', 'Βάθος δείγματος μοντέλου', 'field soil-depth');
+  const selector = element('select');
+  selector.id = 'soilDepth';
+  for (const depth of SOIL_DEPTHS) {
+    const option = element('option', depth.replace('-', '–') + ' cm');
+    option.value = depth;
+    selector.append(option);
+  }
+  selector.onchange = () => onChange(selector.value);
+  label.append(selector);
+  return label;
+}
+
+export function createLocationPanel(tablist, content, { onTabChange, onSoilDepthChange }) {
   const fields = [];
   const tabs = [];
   const panels = [];
@@ -110,6 +131,7 @@ export function createLocationPanel(tablist, content) {
         panels[i].hidden = !active;
       });
       content.scrollTop = 0;
+      onTabChange(TABS[index][0]);
     }
     if (focus) tabs[index].focus({ preventScroll: true });
     const button = tabs[index];
@@ -143,6 +165,7 @@ export function createLocationPanel(tablist, content) {
       activate(next, true);
     });
     for (const fieldId of fieldIds) {
+      if (id === 'soil' && fieldId === 'ph') pane.append(soilDepthField(onSoilDepthChange));
       const view = fieldView(fieldId);
       fields.push(view);
       pane.append(view.row);

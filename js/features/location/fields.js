@@ -23,6 +23,24 @@ export const GEOLOGY_SOURCE = {
   limitations: 'Η κάλυψη και η κλίμακα διαφέρουν ανά χάρτη. Η γεωλογική ενότητα δεν τεκμηριώνει το μητρικό υλικό του εδάφους.',
 };
 
+export const SOIL_SOURCE = {
+  label: 'ISRIC · SoilGrids 2.0',
+  url: 'https://docs.isric.org/globaldata/soilgrids/SoilGrids_faqs_01.html',
+  resolution: '250 μ.',
+  citation: 'Poggio et al. (2021), SoilGrids 2.0, DOI 10.5194/soil-7-217-2021 · CC BY 4.0.',
+  methodology: 'Πρόβλεψη στο κελί και στο επιλεγμένο βάθος μέσω WMS GetFeatureInfo. Εμφανίζονται η μέση τιμή και, όπου διατίθενται, τα ποσοστημόρια 5% και 95%.',
+  limitations: 'Οι τιμές είναι μοντελοποιημένες προβλέψεις, όχι εργαστηριακές μετρήσεις. Τα κλάσματα υφής εμφανίζονται χωρίς ανακανονικοποίηση. Η ανάλυση περιορίζει την ερμηνεία κοντά στις ακτές και σε ανομοιογενές έδαφος.',
+};
+
+export const WRB_SOURCE = {
+  label: 'ISRIC · SoilGrids 2.0 / WRB 2006',
+  url: 'https://docs.isric.org/globaldata/soilgrids/SoilGrids_faqs_03.html',
+  resolution: '250 μ.',
+  citation: 'ISRIC SoilGrids, WRB Reference Soil Groups · CC BY 4.0.',
+  methodology: 'Πιθανότερη ομάδα αναφοράς WRB 2006 ανά κελί, από συναθροισμένες πιθανότητες της έκδοσης 2017.',
+  limitations: 'Ταξινόμηση χωρίς προσδιοριστικό υποομάδας ή συγκεκριμένο βάθος. Εμφανίζεται μόνο όπου υπάρχει κάλυψη επιφανειακού pH SoilGrids (0–5 cm). Το στρώμα MostProbable δεν δίνει την πιθανότητα της ομάδας στην ίδια απόκριση.',
+};
+
 export const DATA_TYPES = {
   measured: ['Μετρημένο', 'Τιμή από άμεση παρατήρηση ή μέτρηση.'],
   modelled: ['Μοντελοποιημένο', 'Τιμή από επιστημονικό μοντέλο.'],
@@ -56,13 +74,13 @@ export const FIELDS = {
   geologicUnit: { label: 'Γεωλογική ενότητα', definition: 'Ενότητα πετρωμάτων που αποτυπώνεται στον γεωλογικό χάρτη.', type: 'classified', source: GEOLOGY_SOURCE },
   lithology: { label: 'Λιθολογία', definition: 'Τύπος ή περιγραφή του χαρτογραφημένου πετρώματος.', type: 'classified', source: GEOLOGY_SOURCE },
   geologicAge: { label: 'Γεωλογική ηλικία', definition: 'Χρονοστρωματογραφικό διάστημα ή ηλικιακό εύρος της ενότητας.', type: 'classified', source: GEOLOGY_SOURCE },
-  soilClass: { label: 'Ταξινόμηση εδάφους', definition: 'Ομάδα εδάφους σύμφωνα με τεκμηριωμένο σύστημα ταξινόμησης.' },
+  soilClass: { label: 'Πιθανότερη ομάδα εδάφους (WRB 2006)', definition: 'Η ομάδα αναφοράς με τη μεγαλύτερη εκτιμώμενη πιθανότητα στο κελί.', type: 'classified', source: WRB_SOURCE },
   parentMaterial: { label: 'Μητρικό υλικό εδάφους', definition: 'Υλικό από το οποίο σχηματίστηκε το έδαφος. Απαιτεί ανεξάρτητη εδαφολογική τεκμηρίωση.' },
-  ph: { label: 'pH', definition: 'Δείκτης οξύτητας ή αλκαλικότητας του εδάφους.' },
-  sand: { label: 'Άμμος', definition: 'Ποσοστό άμμου στη μηχανική σύσταση του εδάφους.', unit: '%' },
-  silt: { label: 'Ιλύς', definition: 'Ποσοστό ιλύος στη μηχανική σύσταση του εδάφους.', unit: '%' },
-  clay: { label: 'Άργιλος', definition: 'Ποσοστό αργίλου στη μηχανική σύσταση του εδάφους.', unit: '%' },
-  organicCarbon: { label: 'Οργανικός άνθρακας', definition: 'Περιεκτικότητα του εδάφους σε άνθρακα οργανικής προέλευσης.' },
+  ph: { label: 'pH σε νερό', definition: 'Δείκτης οξύτητας ή αλκαλικότητας του εδάφους σε υδατικό μέσο.', type: 'modelled', source: SOIL_SOURCE },
+  sand: { label: 'Άμμος', definition: 'Ποσοστό άμμου στη μηχανική σύσταση του εδάφους.', unit: '%', type: 'modelled', source: SOIL_SOURCE },
+  silt: { label: 'Ιλύς', definition: 'Ποσοστό ιλύος στη μηχανική σύσταση του εδάφους.', unit: '%', type: 'modelled', source: SOIL_SOURCE },
+  clay: { label: 'Άργιλος', definition: 'Ποσοστό αργίλου στη μηχανική σύσταση του εδάφους.', unit: '%', type: 'modelled', source: SOIL_SOURCE },
+  organicCarbon: { label: 'Οργανικός άνθρακας', definition: 'Συγκέντρωση οργανικού άνθρακα ανά μάζα εδάφους. Διαφέρει από το απόθεμα ανά μονάδα επιφάνειας.', unit: 'g/kg', type: 'modelled', source: SOIL_SOURCE },
   vegetationZone: { label: 'Ζώνη βλάστησης', definition: 'Χωρική ζώνη που χαρακτηρίζεται από γενικό τύπο φυσικής βλάστησης.' },
   landCover: { label: 'Κάλυψη γης', definition: 'Τύπος φυσικής ή ανθρωπογενούς κάλυψης της επιφάνειας.' },
   plantCommunities: { label: 'Φυτοκοινότητες', definition: 'Σύνολα φυτικών ειδών που συνυπάρχουν σε συγκεκριμένες οικολογικές συνθήκες.' },
