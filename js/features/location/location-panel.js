@@ -1,7 +1,7 @@
 import { CLIMATE_PERIOD } from './climate-normals.js';
 import { createClimatogram } from './climatogram.js';
 import { SOIL_DEPTHS } from './soil-data.js';
-import { DATA_TYPES, ELEVATION_SOURCE, ERA5_PRECIPITATION_SOURCE, ERA5_TEMPERATURE_SOURCE, FIELDS, GEOLOGY_SOURCE, KOPPEN_SOURCE, SOIL_SOURCE, TABS, WRB_SOURCE } from './fields.js';
+import { CORINE_SOURCE, DATA_TYPES, ELEVATION_SOURCE, ERA5_PRECIPITATION_SOURCE, ERA5_TEMPERATURE_SOURCE, FIELDS, GEOLOGY_SOURCE, KOPPEN_SOURCE, SOIL_SOURCE, TABS, WRB_SOURCE } from './fields.js';
 
 const UNAVAILABLE = 'Δεν υπάρχουν ακόμη διαθέσιμα δεδομένα';
 const STATUS = {
@@ -70,6 +70,9 @@ function fieldView(id) {
     for (const [label, text] of [
       ['Πρωτογενής αναφορά', source.citation],
       ['Περίοδος αναφοράς', source.period],
+      ['Έκδοση', source.version],
+      ['Αγγλική ονομασία', source.originalLabel],
+      ['Ιεραρχία CORINE', source.hierarchy],
       ['Κέντρο κελιού', result?.gridCell],
       ['Χωρική ανάλυση', source.resolution],
       ['Βάθος', result?.depth ? result.depth.replace('-', '–') + ' cm' : ''],
@@ -87,7 +90,7 @@ function fieldView(id) {
 function documentationSection() {
   const details = element('details', '', 'science-sources');
   const list = element('ul');
-  for (const source of [ELEVATION_SOURCE, GEOLOGY_SOURCE, SOIL_SOURCE, WRB_SOURCE, ERA5_TEMPERATURE_SOURCE, ERA5_PRECIPITATION_SOURCE, KOPPEN_SOURCE, FIELDS.accuracy.source]) {
+  for (const source of [ELEVATION_SOURCE, GEOLOGY_SOURCE, SOIL_SOURCE, WRB_SOURCE, ERA5_TEMPERATURE_SOURCE, ERA5_PRECIPITATION_SOURCE, KOPPEN_SOURCE, CORINE_SOURCE, FIELDS.accuracy.source]) {
     const item = element('li');
     item.append(sourceLink(source));
     list.append(item);
@@ -172,6 +175,9 @@ export function createLocationPanel(tablist, content, { onTabChange, onSoilDepth
       activate(next, true);
     });
     for (const fieldId of fieldIds) {
+      if (id === 'vegetation' && fieldId === 'landCover') {
+        pane.append(element('p', 'CORINE 2018 · Ιστορική κάλυψη γης. Η έκδοση V2020_20u1 δεν έχει επιβεβαιωθεί για την υπηρεσία ΟΦΥΠΕΚΑ.', 'notice'));
+      }
       if (id === 'soil' && fieldId === 'ph') pane.append(soilDepthField(onSoilDepthChange));
       const view = fieldView(fieldId);
       fields.push(view);

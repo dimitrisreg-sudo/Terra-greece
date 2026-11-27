@@ -1,3 +1,4 @@
+import { createLandCoverData } from './land-cover-data.js';
 import { createClimateData } from './climate-data.js';
 import { createLocationData } from './location-data.js';
 import { createLocationPanel } from './location-panel.js';
@@ -8,7 +9,8 @@ export function bindLocation(leaflet, map) {
   let locationValues = {};
   let soilValues = {};
   let climateValues = {};
-  const render = () => view.update({ ...locationValues, ...soilValues, ...climateValues });
+  let landCoverValues = {};
+  const render = () => view.update({ ...locationValues, ...soilValues, ...climateValues, ...landCoverValues });
   const soil = createSoilData(values => {
     soilValues = values;
     render();
@@ -17,10 +19,15 @@ export function bindLocation(leaflet, map) {
     climateValues = values;
     render();
   });
+  const landCover = createLandCoverData(values => {
+    landCoverValues = values;
+    render();
+  });
   const view = createLocationPanel(document.getElementById('locationTabs'), document.getElementById('infoContent'), {
     onTabChange(tab) {
       soil.setVisible(tab === 'soil');
       climate.setVisible(tab === 'climate');
+      landCover.setVisible(tab === 'vegetation');
     },
     onSoilDepthChange: soil.setDepth,
   });
@@ -61,6 +68,7 @@ export function bindLocation(leaflet, map) {
     view.overview(accuracy);
     soil.selectPoint(point);
     climate.selectPoint(point);
+    landCover.selectPoint(point);
     selectData(point, accuracy);
     if (trigger) title.focus({ preventScroll: true });
     if (changed) for (const notify of listeners) notify();
@@ -97,6 +105,7 @@ export function bindLocation(leaflet, map) {
     panel.hidden = true;
     soil.setVisible(false);
     climate.setVisible(false);
+    landCover.setVisible(false);
     if (focusReturn?.getClientRects().length && !focusReturn.disabled) focusReturn.focus();
     else document.getElementById('menuToggle').focus();
   }
