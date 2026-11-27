@@ -1,3 +1,4 @@
+import { CLIMATE_PERIOD } from './climate-normals.js';
 import { FLAT_THRESHOLD, SAMPLE_SPACING, WATER_GUARD } from './terrain.js';
 
 export const ELEVATION_SOURCE = {
@@ -39,6 +40,34 @@ export const WRB_SOURCE = {
   citation: 'ISRIC SoilGrids, WRB Reference Soil Groups · CC BY 4.0.',
   methodology: 'Πιθανότερη ομάδα αναφοράς WRB 2006 ανά κελί, από συναθροισμένες πιθανότητες της έκδοσης 2017.',
   limitations: 'Ταξινόμηση χωρίς προσδιοριστικό υποομάδας ή συγκεκριμένο βάθος. Εμφανίζεται μόνο όπου υπάρχει κάλυψη επιφανειακού pH SoilGrids (0–5 cm). Το στρώμα MostProbable δεν δίνει την πιθανότητα της ομάδας στην ίδια απόκριση.',
+};
+
+const ERA5_SOURCE = {
+  label: 'Open-Meteo · ECMWF/Copernicus ERA5',
+  url: 'https://open-meteo.com/en/docs/historical-weather-api',
+  resolution: '0,25° (περίπου 25 km), εγγενές πλέγμα ERA5 για τη συγκεκριμένη μεταβλητή.',
+  period: CLIMATE_PERIOD,
+  citation: 'Hersbach et al. (2020), The ERA5 global reanalysis · Copernicus Climate Change Service, ECMWF. Πρόσβαση μέσω Open-Meteo.',
+  limitations: 'Κλιματικές κανονικές τιμές από επανάλυση. Το χονδρό πλέγμα μπορεί να εξομαλύνει το ανάγλυφο και την παράκτια μετάβαση. Χρησιμοποιείται το πλησιέστερο κελί, χωρίς υψομετρική διόρθωση. Οι ημέρες ορίζονται σε UTC.',
+};
+export const ERA5_TEMPERATURE_SOURCE = {
+  ...ERA5_SOURCE,
+  label: ERA5_SOURCE.label + ' · Θερμοκρασία στα 2 μ.',
+  methodology: 'Ημερήσιες μέσες τιμές θερμοκρασίας αέρα στα 2 μ. Πρώτα λαμβάνεται ο μέσος των ημερών ανά μήνα ή έτος και κατόπιν ο μέσος των 30 ομόλογων περιόδων.',
+};
+export const ERA5_PRECIPITATION_SOURCE = {
+  ...ERA5_SOURCE,
+  label: ERA5_SOURCE.label + ' · Ολικός υετός',
+  methodology: 'Ημερήσιος ολικός υετός ERA5 σε ισοδύναμο νερού. Πρώτα αθροίζεται ανά μήνα ή έτος και κατόπιν λαμβάνεται ο μέσος των 30 ομόλογων περιόδων.',
+};
+export const KOPPEN_SOURCE = {
+  label: 'Beck et al. · Köppen–Geiger V3',
+  url: 'https://doi.org/10.6084/m9.figshare.21789074',
+  resolution: '30 δευτερόλεπτα τόξου (περίπου 1 km).',
+  period: CLIMATE_PERIOD,
+  citation: 'Beck et al. (2023), Scientific Data 10, 724 · CC BY 4.0. Περιφερειακή αποκοπή της ιστορικής στρώσης V3.',
+  methodology: 'Ανάγνωση της δημοσιευμένης κλάσης από το κελί του επιλεγμένου σημείου. Η ταξινόμηση βασίζεται στις ιστορικές κλιματολογίες που τεκμηριώνουν οι συγγραφείς.',
+  limitations: 'Ξεχωριστή πηγή από το κλιματόγραμμα ERA5. Ο χάρτης καλύπτει τη χερσαία επιφάνεια. Θαλάσσια κελιά και σημεία εκτός της αποκοπής εμφανίζονται ως μη διαθέσιμα.',
 };
 
 export const DATA_TYPES = {
@@ -86,9 +115,9 @@ export const FIELDS = {
   plantCommunities: { label: 'Φυτοκοινότητες', definition: 'Σύνολα φυτικών ειδών που συνυπάρχουν σε συγκεκριμένες οικολογικές συνθήκες.' },
   flora: { label: 'Καταγεγραμμένη χλωρίδα', definition: 'Τεκμηριωμένες καταγραφές φυτικών ειδών στην περιοχή.' },
   biodiversity: { label: 'Καταγεγραμμένη βιοποικιλότητα γύρω από το σημείο', definition: 'Σύνοψη τεκμηριωμένων καταγραφών σε καθορισμένη περιοχή και περίοδο. Η ερμηνεία απαιτεί γνωστή κάλυψη και δειγματοληψία.' },
-  annualTemperature: { label: 'Μέση ετήσια θερμοκρασία', definition: 'Μέση τιμή θερμοκρασίας σε ετήσια βάση για ορισμένη περίοδο αναφοράς.', unit: '°C' },
-  annualPrecipitation: { label: 'Ετήσιος υετός', definition: 'Συνολικός υετός σε ετήσια βάση για ορισμένη περίοδο αναφοράς.', unit: 'mm' },
-  climateClass: { label: 'Κλιματική ταξινόμηση', definition: 'Κλιματική κατηγορία που προκύπτει από καθορισμένο σύστημα ταξινόμησης.' },
-  monthlyTemperature: { label: 'Μηνιαία θερμοκρασία', definition: 'Μέση τιμή θερμοκρασίας ανά μήνα για ορισμένη περίοδο αναφοράς.', unit: '°C' },
-  monthlyPrecipitation: { label: 'Μηνιαίος υετός', definition: 'Υετός ανά μήνα για ορισμένη περίοδο αναφοράς.', unit: 'mm' },
+  annualTemperature: { label: 'Μέση ετήσια θερμοκρασία', definition: 'Μέση τιμή θερμοκρασίας σε ετήσια βάση για ορισμένη περίοδο αναφοράς.', unit: '°C', type: 'modelDerived', source: ERA5_TEMPERATURE_SOURCE },
+  annualPrecipitation: { label: 'Ετήσιος υετός', definition: 'Συνολικός υετός σε ετήσια βάση για ορισμένη περίοδο αναφοράς.', unit: 'mm', type: 'modelDerived', source: ERA5_PRECIPITATION_SOURCE },
+  climateClass: { label: 'Κλιματική ταξινόμηση Köppen–Geiger', definition: 'Κλιματική κατηγορία σύμφωνα με το σύστημα Köppen–Geiger.', type: 'classified', source: KOPPEN_SOURCE },
+  monthlyTemperature: { label: 'Μηνιαία θερμοκρασία', definition: 'Μέση τιμή θερμοκρασίας ανά μήνα για ορισμένη περίοδο αναφοράς.', unit: '°C', type: 'modelDerived', source: ERA5_TEMPERATURE_SOURCE },
+  monthlyPrecipitation: { label: 'Μηνιαίος υετός', definition: 'Υετός ανά μήνα για ορισμένη περίοδο αναφοράς.', unit: 'mm', type: 'modelDerived', source: ERA5_PRECIPITATION_SOURCE },
 };

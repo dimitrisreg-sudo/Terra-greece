@@ -283,3 +283,16 @@
 
 .soil-depth { margin-top: 14px; }
 .science-uncertainty { margin-top: 3px; font-size: .78rem; }
+
+.climate-period { font-weight: 700; }
+.climatogram { margin: 14px 0 0; }
+.climatogram figcaption { margin-bottom: 8px; color: var(--forest); font-size: .88rem; font-weight: 700; }
+.climate-legend { display: flex; flex-wrap: wrap; gap: 3px 12px; font-size: .72rem; font-weight: 650; }
+.climate-rain-label { color: #176398; }
+.climate-temp-label { color: #a34322; }
+.climatogram canvas { display: block; width: 100%; height: 184px; }
+.climatogram summary { display: flex; min-height: 44px; align-items: center; cursor: pointer; color: var(--forest); font-size: .85rem; font-weight: 650; }
+.climatogram table { width: 100%; border-collapse: collapse; font-size: .77rem; font-variant-numeric: tabular-nums; }
+.climatogram caption { margin-bottom: 6px; text-align: start; }
+.climatogram th, .climatogram td { padding: 5px 3px; border-bottom: 1px solid var(--line); }
+.climatogram th { text-align: start; }

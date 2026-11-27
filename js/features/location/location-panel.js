@@ -1,5 +1,7 @@
+import { CLIMATE_PERIOD } from './climate-normals.js';
+import { createClimatogram } from './climatogram.js';
 import { SOIL_DEPTHS } from './soil-data.js';
-import { DATA_TYPES, ELEVATION_SOURCE, FIELDS, GEOLOGY_SOURCE, SOIL_SOURCE, TABS, WRB_SOURCE } from './fields.js';
+import { DATA_TYPES, ELEVATION_SOURCE, ERA5_PRECIPITATION_SOURCE, ERA5_TEMPERATURE_SOURCE, FIELDS, GEOLOGY_SOURCE, KOPPEN_SOURCE, SOIL_SOURCE, TABS, WRB_SOURCE } from './fields.js';
 
 const UNAVAILABLE = 'Δεν υπάρχουν ακόμη διαθέσιμα δεδομένα';
 const STATUS = {
@@ -68,6 +70,7 @@ function fieldView(id) {
     for (const [label, text] of [
       ['Πρωτογενής αναφορά', source.citation],
       ['Περίοδος αναφοράς', source.period],
+      ['Κέντρο κελιού', result?.gridCell],
       ['Χωρική ανάλυση', source.resolution],
       ['Βάθος', result?.depth ? result.depth.replace('-', '–') + ' cm' : ''],
       ['Κλίμακα χάρτη (όπως παρέχεται)', source.scale],
@@ -84,7 +87,7 @@ function fieldView(id) {
 function documentationSection() {
   const details = element('details', '', 'science-sources');
   const list = element('ul');
-  for (const source of [ELEVATION_SOURCE, GEOLOGY_SOURCE, SOIL_SOURCE, WRB_SOURCE, FIELDS.accuracy.source]) {
+  for (const source of [ELEVATION_SOURCE, GEOLOGY_SOURCE, SOIL_SOURCE, WRB_SOURCE, ERA5_TEMPERATURE_SOURCE, ERA5_PRECIPITATION_SOURCE, KOPPEN_SOURCE, FIELDS.accuracy.source]) {
     const item = element('li');
     item.append(sourceLink(source));
     list.append(item);
@@ -120,6 +123,7 @@ export function createLocationPanel(tablist, content, { onTabChange, onSoilDepth
   const warning = element('p', 'Χαμηλή ακρίβεια θέσης. Η πραγματική θέση μπορεί να διαφέρει αισθητά από τον δείκτη.', 'notice warning');
   warning.hidden = true;
   const sources = documentationSection();
+  const climatogram = createClimatogram();
 
   function activate(index, focus = false) {
     if (index !== currentIndex) {
@@ -153,6 +157,9 @@ export function createLocationPanel(tablist, content, { onTabChange, onSoilDepth
     pane.setAttribute('role', 'tabpanel');
     pane.setAttribute('aria-labelledby', tab.id);
     pane.tabIndex = 0;
+    if (id === 'climate') {
+      pane.append(element('p', 'Κλιματική περίοδος αναφοράς ' + CLIMATE_PERIOD, 'notice climate-period'));
+    }
     tab.onclick = () => activate(index);
     tab.addEventListener('keydown', event => {
       let next;
@@ -171,6 +178,7 @@ export function createLocationPanel(tablist, content, { onTabChange, onSoilDepth
       pane.append(view.row);
       if (fieldId === 'accuracy') pane.append(warning);
     }
+    if (id === 'climate') pane.append(climatogram.figure);
     tabs.push(tab);
     panels.push(pane);
     tablist.append(tab);
@@ -190,6 +198,7 @@ export function createLocationPanel(tablist, content, { onTabChange, onSoilDepth
     },
     update(values) {
       for (const view of fields) view.update(values[view.id]);
+      climatogram.update(values.monthlyTemperature?.series, values.monthlyPrecipitation?.series);
     },
   };
 }

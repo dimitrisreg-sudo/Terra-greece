@@ -1,3 +1,4 @@
+import { createClimateData } from './climate-data.js';
 import { createLocationData } from './location-data.js';
 import { createLocationPanel } from './location-panel.js';
 import { createSoilData } from './soil-data.js';
@@ -6,17 +7,26 @@ export function bindLocation(leaflet, map) {
   const panel = document.getElementById('info');
   let locationValues = {};
   let soilValues = {};
+  let climateValues = {};
+  const render = () => view.update({ ...locationValues, ...soilValues, ...climateValues });
   const soil = createSoilData(values => {
     soilValues = values;
-    view.update({ ...locationValues, ...soilValues });
+    render();
+  });
+  const climate = createClimateData(values => {
+    climateValues = values;
+    render();
   });
   const view = createLocationPanel(document.getElementById('locationTabs'), document.getElementById('infoContent'), {
-    onTabChange: tab => soil.setVisible(tab === 'soil'),
+    onTabChange(tab) {
+      soil.setVisible(tab === 'soil');
+      climate.setVisible(tab === 'climate');
+    },
     onSoilDepthChange: soil.setDepth,
   });
   const selectData = createLocationData(values => {
     locationValues = values;
-    view.update({ ...locationValues, ...soilValues });
+    render();
   });
   const title = document.getElementById('infoTitle');
   const locateButton = document.getElementById('btnLocate');
@@ -50,6 +60,7 @@ export function bindLocation(leaflet, map) {
     panel.hidden = false;
     view.overview(accuracy);
     soil.selectPoint(point);
+    climate.selectPoint(point);
     selectData(point, accuracy);
     if (trigger) title.focus({ preventScroll: true });
     if (changed) for (const notify of listeners) notify();
@@ -85,6 +96,7 @@ export function bindLocation(leaflet, map) {
   function closeInfo() {
     panel.hidden = true;
     soil.setVisible(false);
+    climate.setVisible(false);
     if (focusReturn?.getClientRects().length && !focusReturn.disabled) focusReturn.focus();
     else document.getElementById('menuToggle').focus();
   }
