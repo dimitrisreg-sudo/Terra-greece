@@ -29,8 +29,7 @@ export function createSpeciesPanel(layers, location) {
       <p class="muted">Διάλεξε ομάδα και εμφάνισε είδη που έχουν καταγραφεί γύρω από το σημείο σου.</p>
       <label class="field">Ομάδα ειδών
       <select id="group">
-        <option value="212">🐦 Πουλιά</option>
-        <option value="1">🐾 Ζώα</option>
+        <option value="1" selected>🐾 Ζώα</option>
         <option value="6">🌱 Φυτά</option>
         <option value="5">🍄 Μύκητες</option>
       </select></label>
