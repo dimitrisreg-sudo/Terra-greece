@@ -1,4 +1,4 @@
-export async function searchOccurrences({ lat, lng }, { radius, taxonKey, month }) {
+export async function searchOccurrences({ lat, lng }, { radius, taxonKey, month }, signal) {
   const ring = [];
   for (let index = 0; index <= 36; index++) {
     const angle = 2 * Math.PI * index / 36;
@@ -15,7 +15,7 @@ export async function searchOccurrences({ lat, lng }, { radius, taxonKey, month 
   });
   if (month) params.set('month', month);
 
-  const response = await fetch('https://api.gbif.org/v1/occurrence/search?' + params);
+  const response = await fetch('https://api.gbif.org/v1/occurrence/search?' + params, { signal });
   if (!response.ok) throw new Error('GBIF ' + response.status);
   return response.json();
 }

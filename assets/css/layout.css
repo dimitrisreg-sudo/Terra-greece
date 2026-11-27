@@ -1,95 +1,105 @@
-#map {
+.atlas {
+  display: grid;
+  grid-template: minmax(0, 1fr) auto / minmax(0, 1fr);
   height: 100vh;
   height: 100dvh;
-  width: 100%;
-  background: #dfe8df;
+  isolation: isolate;
 }
 
-.brand {
-  position: absolute;
-  z-index: 800;
-  top: calc(env(safe-area-inset-top) + 14px);
-  left: 14px;
-  background: #fffefbf0;
-  box-shadow: 0 3px 18px #0002;
-  border-radius: 14px;
-  padding: 10px 15px;
-  font-weight: 800;
-  letter-spacing: .2px;
+.map-stage {
+  grid-area: 1 / 1;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  isolation: isolate;
 }
 
-.rail {
-  position: absolute;
-  right: 12px;
-  top: calc(env(safe-area-inset-top) + 90px);
-  z-index: 900;
-  display: grid;
-  gap: 9px;
-}
-
-.sheet {
-  position: absolute;
-  z-index: 1000;
-  right: 72px;
-  top: calc(env(safe-area-inset-top) + 90px);
-  width: min(340px,calc(100vw - 90px));
-  max-height: calc(100dvh - 125px);
-  overflow: auto;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 5px 28px #0004;
-  padding: 17px;
-  display: none;
-}
-
-.pin {
-  position: absolute;
-  z-index: 850;
-  bottom: calc(env(safe-area-inset-bottom) + 18px);
-  left: 50%;
-  transform: translateX(-50%);
-  border: 0;
-  border-radius: 30px;
-  padding: 12px 19px;
-  background: #205943;
-  color: white;
-  box-shadow: 0 4px 20px #0004;
-  font-weight: 700;
-}
-
-.info {
-  position: absolute;
-  z-index: 950;
-  bottom: calc(env(safe-area-inset-bottom) + 72px);
-  left: 12px;
-  width: min(370px,calc(100vw - 88px));
-  max-height: 50dvh;
-  overflow: auto;
-  background: #fff;
-  border-radius: 17px;
-  box-shadow: 0 5px 22px #0004;
-  padding: 16px;
-  display: none;
-}
-
-.error {
+#map {
   position: absolute;
   inset: 0;
-  z-index: 1100;
+  background: #dce4d8;
+}
+
+.navigation {
+  grid-area: 1 / 1;
+  z-index: 2;
+  justify-self: end;
+  align-self: start;
+  position: relative;
+  height: 100%;
+  max-width: 100%;
+  padding: calc(10px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) 12px 10px;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.navigation :is(.rail, .nav-links) { pointer-events: auto; }
+.navigation .brand, .rail .nav-label { display: none; }
+
+.nav-links {
+  display: none;
+  width: min(235px, calc(100vw - 30px - env(safe-area-inset-right)));
+  min-height: 0;
+  max-height: calc(100% - 102px);
+  overflow: auto;
+}
+
+.navigation.menu-open .nav-links { display: grid; }
+
+.panel {
+  grid-area: 2 / 1;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  max-height: 46vh;
+  max-height: 46dvh;
+  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.sheet:not([hidden]) + .info { display: none; }
+.panel-content { min-height: 0; overflow: auto; overscroll-behavior: contain; }
+
+.error {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
   text-align: center;
-  background: #edf3ee;
+  background: var(--paper);
   padding: 30px;
 }
 
-@media (min-width:800px) {
-  .sheet {
-    right: 74px;
-    width: 360px;
+@media (min-width: 800px) {
+  .atlas { grid-template: minmax(0, 1fr) / auto auto minmax(0, 1fr) auto; }
+  .navigation {
+    grid-area: 1 / 1;
+    width: clamp(180px, 19vw, 248px);
+    justify-self: stretch;
+    align-self: stretch;
+    align-items: stretch;
+    padding: 16px 12px;
+    pointer-events: auto;
   }
-  .info {
-    bottom: 25px;
+
+  .navigation .brand, .rail .nav-label { display: flex; }
+  .navigation.compact { width: 72px; }
+  .navigation.compact :is(.nav-label, h1) { display: none; }
+  .navigation.compact .brand { justify-content: center; }
+  .nav-links { display: grid; width: auto; max-height: none; }
+  .map-stage { grid-area: 1 / 3; }
+  .sheet { grid-area: 1 / 2; }
+  .info { grid-area: 1 / 4; }
+  .panel {
+    width: clamp(210px, 23vw, 340px);
+    max-height: none;
+    padding: 0;
   }
+  .sheet:not([hidden]) + .info:not([hidden]) { display: flex; }
+  .map-stage .map-brand { display: none; }
 }
