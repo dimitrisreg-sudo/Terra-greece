@@ -1,11 +1,11 @@
+import { usableCoordinates } from '../../services/gbif-geography.js';
+
 // Apply the same grid to local and nationwide results so a local query cannot expose finer positions.
 export function occurrenceGrid(records) {
   const cells = new Map();
   for (const record of records) {
     const { decimalLatitude: lat, decimalLongitude: lng } = record;
-    if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) continue;
-    if (record.informationWithheld || record.dataGeneralizations || record.hasGeospatialIssues
-      || record.issues?.some(issue => ['COORDINATE_INVALID', 'COORDINATE_OUT_OF_RANGE', 'COUNTRY_COORDINATE_MISMATCH'].includes(issue))) continue;
+    if (!usableCoordinates(record)) continue;
 
     const row = Math.floor(lat * 10);
     const column = Math.floor(lng * 10);

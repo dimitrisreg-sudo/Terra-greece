@@ -1,3 +1,6 @@
+import { distanceKm, radiusPolygon, usableCoordinates } from './gbif-geography.js';
+import { withRequestDeadline } from './request-signal.js';
+
 const API = 'https://api.gbif.org/v1';
 const SPECIES_LIMIT = 12;
 const SUMMARY_CONCURRENCY = 3;
@@ -5,13 +8,15 @@ const PAGE_SIZE = 300;
 export const OCCURRENCE_LIMIT = 1200;
 
 async function getJson(path, signal) {
-  const response = await fetch(API + path, { signal });
-  if (!response.ok) {
-    const error = new Error('GBIF ' + response.status);
-    error.status = response.status;
-    throw error;
-  }
-  return response.json();
+  return withRequestDeadline(async requestSignal => {
+    const response = await fetch(API + path, { signal: requestSignal });
+    if (!response.ok) {
+      const error = new Error('GBIF ' + response.status);
+      error.status = response.status;
+      throw error;
+    }
+    return response.json();
+  }, signal);
 }
 
 function occurrenceFilters({ point, radius, month }) {
@@ -22,16 +27,8 @@ function occurrenceFilters({ point, radius, month }) {
   if (radius === 0) {
     params.set('country', 'GR');
   } else {
-    const { lat, lng } = point;
-    const ring = [];
-    for (let index = 0; index < 36; index++) {
-      const angle = 2 * Math.PI * index / 36;
-      const longitude = lng + radius * Math.cos(angle) / (111.2 * Math.cos(lat * Math.PI / 180));
-      const latitude = lat + radius * Math.sin(angle) / 111.2;
-      ring.push(`${longitude.toFixed(5)} ${latitude.toFixed(5)}`);
-    }
-    ring.push(ring[0]);
-    params.set('geometry', `POLYGON((${ring.join(',')}))`);
+    params.set('geometry', radiusPolygon(point, radius));
+    params.set('occurrenceStatus', 'PRESENT');
   }
   for (const value of month.split(',').filter(Boolean)) params.append('month', value);
   return params;
@@ -45,14 +42,99 @@ async function getSpeciesSummary(filters, key, signal) {
   return { key, count: page.count, name: page.results[0]?.species };
 }
 
-export async function discoverSpecies(filters, signal, onProgress) {
+function discoveryParams(filters, limit) {
   const params = occurrenceFilters(filters);
   params.set('taxonKey', filters.taxonKey);
-  params.set('limit', '0');
+  params.set('limit', String(limit));
   params.set('facet', 'speciesKey');
   params.set('facetLimit', String(SPECIES_LIMIT + 1));
-  const data = await getJson('/occurrence/search?' + params, signal);
-  const counts = data.facets?.find(facet => facet.field === 'SPECIES_KEY')?.counts ?? [];
+  return params;
+}
+
+function speciesFacets(page) {
+  const buckets = page.facets?.find(facet => facet.field === 'SPECIES_KEY')?.counts;
+  return Array.isArray(buckets) ? buckets : undefined;
+}
+
+export const RECORDED_PAGE_LIMIT = 2;
+
+export async function sampleRecordedSpecies(filters, signal) {
+  const { point, radius } = filters;
+  const params = discoveryParams(filters, PAGE_SIZE);
+  const species = new Set();
+  const checked = new Set();
+  const datasets = new Map();
+  let counts;
+  let total;
+  let inspected = 0;
+  let retained = 0;
+  let unknownAccuracy = 0;
+  let firstYear;
+  let lastYear;
+  let missingYear = 0;
+  let complete = false;
+  let interrupted = false;
+  for (let pageIndex = 0; pageIndex < RECORDED_PAGE_LIMIT; pageIndex++) {
+    const offset = pageIndex * PAGE_SIZE;
+    params.set('offset', String(offset));
+    let page;
+    try {
+      page = await getJson('/occurrence/search?' + params, signal);
+      if (!Number.isSafeInteger(page.count) || page.count < 0 || !Array.isArray(page.results)) {
+        throw new Error('Invalid GBIF page');
+      }
+    } catch (error) {
+      if (pageIndex === 0 || (signal.aborted && signal.reason?.name !== 'TimeoutError')) throw error;
+      interrupted = true;
+      break;
+    }
+    signal.throwIfAborted();
+    if (pageIndex === 0) {
+      total = page.count;
+      counts = speciesFacets(page);
+      params.delete('facet');
+      params.delete('facetLimit');
+    }
+    inspected += page.results.length;
+    for (const record of page.results) {
+      if (record.key != null && checked.has(record.key)) continue;
+      if (record.key != null) checked.add(record.key);
+      if (!usableCoordinates(record)
+        || (record.occurrenceStatus && !['PRESENT', 'DETECTED'].includes(record.occurrenceStatus))) continue;
+      const distance = distanceKm(point, record.decimalLatitude, record.decimalLongitude);
+      const uncertainty = record.coordinateUncertaintyInMeters;
+      const knownAccuracy = Number.isFinite(uncertainty) && uncertainty > 0;
+      if (distance + (knownAccuracy ? uncertainty / 1000 : 0) > radius) continue;
+      retained++;
+      if (!knownAccuracy) unknownAccuracy++;
+      const year = record.year;
+      if (Number.isInteger(year) && year > 0) {
+        firstYear = Math.min(firstYear ?? year, year);
+        lastYear = Math.max(lastYear ?? year, year);
+      } else missingYear++;
+      if (record.datasetKey && /^[0-9a-f-]{36}$/i.test(record.datasetKey)) {
+        const licenses = datasets.get(record.datasetKey) ?? new Set();
+        if (record.license) licenses.add(record.license);
+        datasets.set(record.datasetKey, licenses);
+      }
+      // GBIF speciesKey is the accepted species, including for identified infraspecific taxa.
+      const speciesKey = record.speciesKey ?? (record.taxonRank === 'SPECIES' ? record.acceptedTaxonKey : undefined);
+      if (Number.isSafeInteger(speciesKey) && speciesKey > 0
+        && !record.issues?.some(issue => ['TAXON_MATCH_HIGHERRANK', 'TAXON_MATCH_FUZZY',
+          'TAXON_MATCH_AGGREGATE', 'TAXON_MATCH_NONE'].includes(issue))) species.add(speciesKey);
+    }
+    complete = offset + page.results.length >= total;
+    if (complete || page.endOfRecords === true || page.results.length < PAGE_SIZE) break;
+  }
+  return {
+    distinct: species.size, total, inspected, retained, unknownAccuracy, firstYear, lastYear, missingYear,
+    limited: !complete, interrupted, counts,
+    datasets: Array.from(datasets, ([key, licenses]) => ({ key, licenses: [...licenses] })),
+  };
+}
+
+export async function discoverSpecies(filters, signal, onProgress, cachedCounts) {
+  const counts = cachedCounts ?? speciesFacets(await getJson('/occurrence/search?' + discoveryParams(filters, 0), signal)) ?? [];
   const species = [];
   let failed = 0;
   const buckets = counts.slice(0, SPECIES_LIMIT);

@@ -141,16 +141,6 @@
 }
 .entry strong { display: block; font-size: .875rem; }
 .entry small { color: var(--muted); }
-.metric {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin: 0;
-  padding: 9px 0;
-  border-bottom: 1px solid var(--line);
-  font-size: .875rem;
-}
-.metric b { text-align: right; overflow-wrap: anywhere; }
 .notice {
   background: var(--paper);
   border-left: 3px solid var(--olive);
@@ -182,4 +172,140 @@
   .navigation.compact .nav-future small { font-size: .625rem; }
   .panel { border-top: 0; border-inline: 1px solid var(--line); }
   .gps-status:not(:empty) { top: 12px; }
+}
+
+.location-tabs {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.location-tabs button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--forest);
+  background: transparent;
+  font-size: .85rem;
+  font-weight: 650;
+}
+
+.location-tabs button[aria-selected="true"] {
+  color: var(--white);
+  background: var(--forest);
+}
+
+.location-tabs button:focus-visible,
+.science-tabpanel:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: -2px;
+}
+.location-tabs button[aria-selected="true"]:focus-visible {
+  outline-color: var(--white);
+  outline-offset: -4px;
+}
+
+.science-field {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.science-field-heading h3 {
+  display: inline;
+  margin: 0;
+  font-size: .88rem;
+  color: var(--forest);
+}
+
+.science-definition {
+  display: inline;
+  font-size: .8rem;
+}
+
+.science-definition summary {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  min-height: 44px;
+  color: var(--forest);
+  font-size: 1.1rem;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.science-definition summary::-webkit-details-marker { display: none; }
+.science-definition[open] summary { background: var(--paper); }
+.science-definition > div {
+  padding: 4px 10px;
+  border-left: 2px solid var(--olive);
+  background: var(--paper);
+  overflow-wrap: anywhere;
+}
+.science-definition p { margin: 7px 0; }
+.science-value { font-size: .9rem; overflow-wrap: anywhere; }
+.science-value:not([data-state="available"]) { color: var(--muted); font-size: .82rem; }
+.science-value[data-state="error"] { color: #80512e; }
+.science-type {
+  font-size: .73rem;
+  font-weight: 650;
+  color: var(--muted);
+}
+.science-sources {
+  margin-top: 14px;
+  padding-top: 8px;
+  font-size: .85rem;
+}
+.science-sources summary { min-height: 44px; padding: 10px 0; cursor: pointer; font-weight: 700; }
+.science-sources ul { padding-inline-start: 20px; }
+.science-definition a, .science-sources a { color: var(--forest); }
+
+@media (min-width: 800px) {
+  .location-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .location-tabs button { min-height: 36px; padding-inline: 4px; }
+}
+
+@media (min-width: 1200px) {
+  .location-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 799px) and (max-height: 480px) {
+  .info { max-height: 56vh; max-height: 56dvh; }
+}
+
+.soil-depth { margin-top: 14px; }
+.science-uncertainty { margin-top: 3px; font-size: .78rem; }
+
+.climate-period { font-weight: 700; }
+.climatogram { margin: 14px 0 0; }
+.climatogram figcaption { margin-bottom: 8px; color: var(--forest); font-size: .88rem; font-weight: 700; }
+.climate-legend { display: flex; flex-wrap: wrap; gap: 3px 12px; font-size: .72rem; font-weight: 650; }
+.climate-rain-label { color: #176398; }
+.climate-temp-label { color: #a34322; }
+.climatogram canvas { display: block; width: 100%; height: 184px; }
+.climatogram summary { display: flex; min-height: 44px; align-items: center; cursor: pointer; color: var(--forest); font-size: .85rem; font-weight: 650; }
+.climatogram table { width: 100%; border-collapse: collapse; font-size: .77rem; font-variant-numeric: tabular-nums; }
+.climatogram caption { margin-bottom: 6px; text-align: start; }
+.climatogram th, .climatogram td { padding: 5px 3px; border-bottom: 1px solid var(--line); }
+.climatogram th { text-align: start; }
+
+.biodiversity-summary > ul {
+  padding-inline-start: 1.25rem;
+}
+
+.biodiversity-summary li {
+  margin-block: .35rem;
+  overflow-wrap: anywhere;
+}
+
+.biodiversity-summary .action + .action {
+  margin-block-start: .4rem;
 }
