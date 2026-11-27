@@ -1,9 +1,10 @@
-import { getElevation } from '../../services/elevation.js';
-import { getGeologicUnit } from '../../services/macrostrat.js';
+import { createLocationData } from './location-data.js';
+import { createLocationPanel } from './location-panel.js';
 
 export function bindLocation(leaflet, map) {
   const panel = document.getElementById('info');
-  const content = document.getElementById('infoContent');
+  const view = createLocationPanel(document.getElementById('locationTabs'), document.getElementById('infoContent'));
+  const selectData = createLocationData(view.update);
   const title = document.getElementById('infoTitle');
   const locateButton = document.getElementById('btnLocate');
   const gpsStatus = document.getElementById('gpsStatus');
@@ -12,35 +13,6 @@ export function bindLocation(leaflet, map) {
   let accuracyCircle;
   let focusReturn;
   let selectedPoint = null;
-  let pointRequest = 0;
-
-  async function loadPointData(point) {
-    const request = ++pointRequest;
-    const elevationField = document.getElementById('elevation');
-    const rockField = document.getElementById('rock');
-
-    try {
-      const elevation = await getElevation(point);
-      if (request === pointRequest) {
-        elevationField.textContent = Number.isFinite(elevation)
-          ? Math.round(elevation) + ' μ. (μοντέλο εδάφους)'
-          : 'Μη διαθέσιμο';
-      }
-    } catch {
-      if (request === pointRequest) elevationField.textContent = 'Μη διαθέσιμο';
-    }
-
-    try {
-      const unit = await getGeologicUnit(point);
-      if (request === pointRequest) {
-        rockField.textContent = unit
-          ? String(unit).slice(0, 110)
-          : 'Δεν υπάρχουν διαθέσιμα στοιχεία';
-      }
-    } catch {
-      if (request === pointRequest) rockField.textContent = 'Η υπηρεσία δεν ανταποκρίθηκε';
-    }
-  }
 
   function showInfo(point, { accuracy, trigger } = {}) {
     const changed = selectedPoint?.lat !== point.lat || selectedPoint?.lng !== point.lng;
@@ -48,9 +20,6 @@ export function bindLocation(leaflet, map) {
     accuracyCircle?.remove();
     accuracyCircle = undefined;
     const hasAccuracy = Number.isFinite(accuracy) && accuracy > 0;
-    const accuracyText = hasAccuracy && accuracy >= 1000
-      ? `${(accuracy / 1000).toLocaleString('el-GR', { maximumFractionDigits: 1 })} χλμ.`
-      : `${Math.round(accuracy).toLocaleString('el-GR')} μ.`;
     if (hasAccuracy) {
       accuracyCircle = leaflet.circle(point, {
         radius: accuracy,
@@ -66,16 +35,8 @@ export function bindLocation(leaflet, map) {
     if (marker) marker.remove();
     marker = leaflet.marker(point).addTo(map);
     panel.hidden = false;
-    content.innerHTML = `
-      <div class="metric"><span>Συντεταγμένες</span><b>${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}</b></div>
-      ${hasAccuracy ? `<div class="metric"><span>Εκτιμώμενη ακρίβεια θέσης</span><b>±${accuracyText}</b></div>` : ''}
-      ${hasAccuracy && accuracy >= 100 ? '<p class="notice warning">Χαμηλή ακρίβεια θέσης. Η πραγματική θέση μπορεί να διαφέρει αισθητά από τον δείκτη.</p>' : ''}
-      <div class="metric"><span>Υψόμετρο</span><b id="elevation">Ανάκτηση…</b></div>
-      <div class="metric"><span>Μητρικό πέτρωμα / γεωλογία</span><b id="rock">Ανάκτηση…</b></div>
-      <div class="metric"><span>Ζώνη βλάστησης</span><b>Δεν έχει χαρτογραφηθεί ακόμη</b></div>
-      <div class="notice">Η γεωλογική μονάδα δεν ταυτίζεται πάντοτε με το μητρικό υλικό του εδάφους. Για τη ζώνη βλάστησης απαιτείται εξειδικευμένο επιστημονικό επίπεδο.</div>
-    `;
-    loadPointData(point);
+    view.overview(accuracy);
+    selectData(point, accuracy);
     if (trigger) title.focus({ preventScroll: true });
     if (changed) for (const notify of listeners) notify();
     return point;
