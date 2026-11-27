@@ -1,7 +1,8 @@
+import { createBiodiversityView } from './biodiversity-view.js';
 import { CLIMATE_PERIOD } from './climate-normals.js';
 import { createClimatogram } from './climatogram.js';
 import { SOIL_DEPTHS } from './soil-data.js';
-import { CORINE_SOURCE, DATA_TYPES, ELEVATION_SOURCE, ERA5_PRECIPITATION_SOURCE, ERA5_TEMPERATURE_SOURCE, FIELDS, GEOLOGY_SOURCE, KOPPEN_SOURCE, SOIL_SOURCE, TABS, WRB_SOURCE } from './fields.js';
+import { CORINE_SOURCE, DATA_TYPES, ELEVATION_SOURCE, ERA5_PRECIPITATION_SOURCE, ERA5_TEMPERATURE_SOURCE, FIELDS, GBIF_SOURCE, GEOLOGY_SOURCE, KOPPEN_SOURCE, SOIL_SOURCE, TABS, WRB_SOURCE } from './fields.js';
 
 const UNAVAILABLE = 'Δεν υπάρχουν ακόμη διαθέσιμα δεδομένα';
 const STATUS = {
@@ -90,7 +91,7 @@ function fieldView(id) {
 function documentationSection() {
   const details = element('details', '', 'science-sources');
   const list = element('ul');
-  for (const source of [ELEVATION_SOURCE, GEOLOGY_SOURCE, SOIL_SOURCE, WRB_SOURCE, ERA5_TEMPERATURE_SOURCE, ERA5_PRECIPITATION_SOURCE, KOPPEN_SOURCE, CORINE_SOURCE, FIELDS.accuracy.source]) {
+  for (const source of [ELEVATION_SOURCE, GEOLOGY_SOURCE, SOIL_SOURCE, WRB_SOURCE, ERA5_TEMPERATURE_SOURCE, ERA5_PRECIPITATION_SOURCE, KOPPEN_SOURCE, CORINE_SOURCE, GBIF_SOURCE, FIELDS.accuracy.source]) {
     const item = element('li');
     item.append(sourceLink(source));
     list.append(item);
@@ -118,8 +119,9 @@ function soilDepthField(onChange) {
   return label;
 }
 
-export function createLocationPanel(tablist, content, { onTabChange, onSoilDepthChange }) {
+export function createLocationPanel(tablist, content, { onTabChange, onSoilDepthChange, loadBiodiversity, exploreBiodiversity }) {
   const fields = [];
+  const biodiversity = [];
   const tabs = [];
   const panels = [];
   let currentIndex = -1;
@@ -183,6 +185,14 @@ export function createLocationPanel(tablist, content, { onTabChange, onSoilDepth
       fields.push(view);
       pane.append(view.row);
       if (fieldId === 'accuracy') pane.append(warning);
+      if (fieldId === 'biodiversity' || fieldId === 'flora') {
+        const summary = createBiodiversityView({
+          floraOnly: fieldId === 'flora', load: loadBiodiversity, explore: exploreBiodiversity,
+        });
+        biodiversity.push(summary);
+        view.row.querySelector('.science-value').hidden = true;
+        view.row.append(summary.node);
+      }
     }
     if (id === 'climate') pane.append(climatogram.figure);
     tabs.push(tab);
@@ -201,6 +211,9 @@ export function createLocationPanel(tablist, content, { onTabChange, onSoilDepth
       warning.hidden = !(Number.isFinite(accuracy) && accuracy >= 100);
       for (const field of fields) field.details.open = false;
       sources.open = false;
+    },
+    updateBiodiversity(states) {
+      for (const view of biodiversity) view.update(states);
     },
     update(values) {
       for (const view of fields) view.update(values[view.id]);

@@ -296,3 +296,16 @@
 .climatogram caption { margin-bottom: 6px; text-align: start; }
 .climatogram th, .climatogram td { padding: 5px 3px; border-bottom: 1px solid var(--line); }
 .climatogram th { text-align: start; }
+
+.biodiversity-summary > ul {
+  padding-inline-start: 1.25rem;
+}
+
+.biodiversity-summary li {
+  margin-block: .35rem;
+  overflow-wrap: anywhere;
+}
+
+.biodiversity-summary .action + .action {
+  margin-block-start: .4rem;
+}

@@ -1,10 +1,11 @@
+import { BIODIVERSITY_RADIUS, createBiodiversityData } from './biodiversity-data.js';
 import { createLandCoverData } from './land-cover-data.js';
 import { createClimateData } from './climate-data.js';
 import { createLocationData } from './location-data.js';
 import { createLocationPanel } from './location-panel.js';
 import { createSoilData } from './soil-data.js';
 
-export function bindLocation(leaflet, map) {
+export function bindLocation(leaflet, map, openSpecies) {
   const panel = document.getElementById('info');
   let locationValues = {};
   let soilValues = {};
@@ -23,6 +24,7 @@ export function bindLocation(leaflet, map) {
     landCoverValues = values;
     render();
   });
+  const biodiversity = createBiodiversityData(states => view.updateBiodiversity(states));
   const view = createLocationPanel(document.getElementById('locationTabs'), document.getElementById('infoContent'), {
     onTabChange(tab) {
       soil.setVisible(tab === 'soil');
@@ -30,6 +32,11 @@ export function bindLocation(leaflet, map) {
       landCover.setVisible(tab === 'vegetation');
     },
     onSoilDepthChange: soil.setDepth,
+    loadBiodiversity: biodiversity.load,
+    exploreBiodiversity(taxonKey, trigger) {
+      if (!selectedPoint) return;
+      openSpecies({ radius: BIODIVERSITY_RADIUS, taxonKey, trigger });
+    },
   });
   const selectData = createLocationData(values => {
     locationValues = values;
@@ -69,6 +76,7 @@ export function bindLocation(leaflet, map) {
     soil.selectPoint(point);
     climate.selectPoint(point);
     landCover.selectPoint(point);
+    biodiversity.selectPoint(point);
     selectData(point, accuracy);
     if (trigger) title.focus({ preventScroll: true });
     if (changed) for (const notify of listeners) notify();
@@ -106,6 +114,7 @@ export function bindLocation(leaflet, map) {
     soil.setVisible(false);
     climate.setVisible(false);
     landCover.setVisible(false);
+    biodiversity.cancelPending();
     if (focusReturn?.getClientRects().length && !focusReturn.disabled) focusReturn.focus();
     else document.getElementById('menuToggle').focus();
   }
@@ -122,6 +131,7 @@ export function bindLocation(leaflet, map) {
   locateButton.onclick = locate;
 
   return {
+    discoveryCounts: biodiversity.discoveryCounts,
     searchPoint: () => selectedPoint ?? showInfo(map.getCenter()),
     onPointChange(listener) {
       listeners.add(listener);

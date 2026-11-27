@@ -1,6 +1,13 @@
 import { CLIMATE_PERIOD } from './climate-normals.js';
 import { FLAT_THRESHOLD, SAMPLE_SPACING, WATER_GUARD } from './terrain.js';
 
+export const GBIF_SOURCE = {
+  label: 'GBIF · Δημόσιες καταγραφές και ταξινομική αντιστοίχιση',
+  url: 'https://techdocs.gbif.org/en/openapi/v1/occurrence',
+  methodology: 'Πολύγωνο 72 κορυφών και επανέλεγχος της σφαιρικής απόστασης. Έως 600 εγγραφές ανά βασίλειο, με αποδιπλοποίηση κατά αποδεκτό κωδικό GBIF στο επίπεδο είδους.',
+  limitations: 'Το πρώτο τμήμα των αποτελεσμάτων του GBIF δεν είναι τυχαίο δείγμα. Ελλιπή έτη, αβέβαιες ταυτοποιήσεις, χωρική αβεβαιότητα και μεροληψία δειγματοληψίας επηρεάζουν την κάλυψη. Τα σύνολα διατηρούν τις άδειες και την απόδοση των παρόχων τους.',
+};
+
 export const ELEVATION_SOURCE = {
   label: 'Open-Meteo · Copernicus DEM GLO-90',
   url: 'https://open-meteo.com/en/docs/elevation-api',
@@ -124,8 +131,8 @@ export const FIELDS = {
   vegetationZone: { label: 'Ζώνη βλάστησης', definition: 'Χωρική ζώνη που χαρακτηρίζεται από γενικό τύπο φυσικής βλάστησης.' },
   landCover: { label: 'Κάλυψη γης', definition: 'Χαρτογραφημένος τύπος κάλυψης ή χρήσης της επιφάνειας κατά CORINE.', type: 'classified', source: CORINE_SOURCE },
   plantCommunities: { label: 'Φυτοκοινότητες', definition: 'Σύνολα φυτικών ειδών που συνυπάρχουν σε συγκεκριμένες οικολογικές συνθήκες.' },
-  flora: { label: 'Καταγεγραμμένη χλωρίδα', definition: 'Τεκμηριωμένες καταγραφές φυτικών ειδών στην περιοχή.' },
-  biodiversity: { label: 'Καταγεγραμμένη βιοποικιλότητα γύρω από το σημείο', definition: 'Σύνοψη τεκμηριωμένων καταγραφών σε καθορισμένη περιοχή και περίοδο. Η ερμηνεία απαιτεί γνωστή κάλυψη και δειγματοληψία.' },
+  flora: { source: GBIF_SOURCE, label: 'Καταγεγραμμένη χλωρίδα', definition: 'Τεκμηριωμένες καταγραφές φυτικών ειδών στην περιοχή.' },
+  biodiversity: { source: GBIF_SOURCE, label: 'Καταγεγραμμένη βιοποικιλότητα γύρω από το σημείο', definition: 'Σύνοψη τεκμηριωμένων καταγραφών σε καθορισμένη περιοχή και περίοδο. Η ερμηνεία απαιτεί γνωστή κάλυψη και δειγματοληψία.' },
   annualTemperature: { label: 'Μέση ετήσια θερμοκρασία', definition: 'Μέση τιμή θερμοκρασίας σε ετήσια βάση για ορισμένη περίοδο αναφοράς.', unit: '°C', type: 'modelDerived', source: ERA5_TEMPERATURE_SOURCE },
   annualPrecipitation: { label: 'Ετήσιος υετός', definition: 'Συνολικός υετός σε ετήσια βάση για ορισμένη περίοδο αναφοράς.', unit: 'mm', type: 'modelDerived', source: ERA5_PRECIPITATION_SOURCE },
   climateClass: { label: 'Κλιματική ταξινόμηση Köppen–Geiger', definition: 'Κλιματική κατηγορία σύμφωνα με το σύστημα Köppen–Geiger.', type: 'classified', source: KOPPEN_SOURCE },

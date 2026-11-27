@@ -6,7 +6,7 @@ const alphabetical = new Intl.Collator('el', { sensitivity: 'base', numeric: tru
 const displayName = species => species.name || `GBIF ${species.key}`;
 
 export function createSpeciesPanel(layers, location) {
-  return function renderPanel(content) {
+  return function renderPanel(content, options) {
     content.innerHTML = `
       <p class="muted">Διάλεξε ομάδα και εμφάνισε είδη που έχουν καταγραφεί στη γεωγραφική περιοχή που επιλέγεις.</p>
       <label class="field">Ομάδα ειδών
@@ -44,6 +44,10 @@ export function createSpeciesPanel(layers, location) {
     const group = content.querySelector('#group');
     const radius = content.querySelector('#radius');
     const month = content.querySelector('#month');
+    if (options) {
+      radius.value = String(options.radius);
+      group.value = options.taxonKey;
+    }
     let species = [];
     let activeFilters;
     let currentRequest;
@@ -101,7 +105,7 @@ export function createSpeciesPanel(layers, location) {
       try {
         const data = await discoverSpecies(filters, request.signal, (checked, total) => {
           if (request === currentRequest) status.textContent = `Επαλήθευση καταμετρήσεων GBIF: ${checked} / ${total} είδη…`;
-        });
+        }, location.discoveryCounts(filters));
         if (request !== currentRequest) return;
         activeFilters = filters;
         species = data.species.sort((a, b) => b.count - a.count
