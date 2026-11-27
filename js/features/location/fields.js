@@ -49,7 +49,7 @@ export const WRB_SOURCE = {
   limitations: 'Ταξινόμηση χωρίς προσδιοριστικό υποομάδας ή συγκεκριμένο βάθος. Εμφανίζεται μόνο όπου υπάρχει κάλυψη επιφανειακού pH SoilGrids (0–5 cm). Το στρώμα MostProbable δεν δίνει την πιθανότητα της ομάδας στην ίδια απόκριση.',
 };
 
-const ERA5_SOURCE = {
+export const ERA5_SOURCE = {
   label: 'Open-Meteo · ECMWF/Copernicus ERA5',
   url: 'https://open-meteo.com/en/docs/historical-weather-api',
   resolution: '0,25° (περίπου 25 km), εγγενές πλέγμα ERA5 για τη συγκεκριμένη μεταβλητή.',

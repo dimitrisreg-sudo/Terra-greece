@@ -1,4 +1,5 @@
 import { distanceKm, radiusPolygon, usableCoordinates } from './gbif-geography.js';
+import { withRequestDeadline } from './request-signal.js';
 
 const API = 'https://api.gbif.org/v1';
 const SPECIES_LIMIT = 12;
@@ -7,13 +8,15 @@ const PAGE_SIZE = 300;
 export const OCCURRENCE_LIMIT = 1200;
 
 async function getJson(path, signal) {
-  const response = await fetch(API + path, { signal });
-  if (!response.ok) {
-    const error = new Error('GBIF ' + response.status);
-    error.status = response.status;
-    throw error;
-  }
-  return response.json();
+  return withRequestDeadline(async requestSignal => {
+    const response = await fetch(API + path, { signal: requestSignal });
+    if (!response.ok) {
+      const error = new Error('GBIF ' + response.status);
+      error.status = response.status;
+      throw error;
+    }
+    return response.json();
+  }, signal);
 }
 
 function occurrenceFilters({ point, radius, month }) {
