@@ -1,9 +1,19 @@
+import { FLAT_THRESHOLD, SAMPLE_SPACING, WATER_GUARD } from './terrain.js';
+
 export const ELEVATION_SOURCE = {
   label: 'Open-Meteo · Copernicus DEM GLO-90',
   url: 'https://open-meteo.com/en/docs/elevation-api',
-  resolution: 'περίπου 90 μ.',
+  resolution: 'ονομαστικά 90 μ.',
+  period: 'Έκδοση GLO-90 του 2021, σύμφωνα με την τεκμηρίωση Open-Meteo.',
+  citation: 'Παράχθηκε με Copernicus WorldDEM™-90 © DLR e.V. 2010–2014 και © Airbus Defence and Space GmbH 2014–2018, που παρέχεται στο πλαίσιο του COPERNICUS από την Ευρωπαϊκή Ένωση και την ESA. Με την επιφύλαξη παντός δικαιώματος.',
   methodology: 'Ανάκτηση τιμής από το ψηφιακό μοντέλο υψομέτρου για τις συντεταγμένες.',
   limitations: 'Η τιμή εξαρτάται από την ανάλυση του μοντέλου και μπορεί να διαφέρει από επιτόπια μέτρηση.',
+};
+
+const TERRAIN_SOURCE = {
+  ...ELEVATION_SOURCE,
+  methodology: `Κλίση και έκθεση από το σταθμισμένο παράθυρο Horn 3×3. Τα δείγματα απέχουν περίπου ${SAMPLE_SPACING} μ. Η απόσταση υπολογίζεται σε μέτρα, με διόρθωση του μήκους ως προς το γεωγραφικό πλάτος. Η έκθεση είναι η διεύθυνση κατάβασης από τον γεωγραφικό βορρά, δεξιόστροφα. Κλίση κάτω από ${String(FLAT_THRESHOLD).replace('.', ',')}° θεωρείται πρακτικά επίπεδη για την έκθεση.`,
+  limitations: `Εκτιμήσεις από ψηφιακό μοντέλο επιφάνειας. Τα σημεία του API δεν συμπίπτουν κατ’ ανάγκη με τα εγγενή κελιά του DEM. Βλάστηση, κτίρια και ακτογραμμές μπορούν να επηρεάσουν τις τιμές. Δεν εμφανίζονται παράγωγα με ελλιπή ή άκυρα δείγματα ή με δείγμα ≤ ${WATER_GUARD} μ. Ο έλεγχος είναι προληπτικός και δεν επιβεβαιώνει ότι όλα τα δείγματα είναι στη στεριά.`,
 };
 
 export const GEOLOGY_SOURCE = {
@@ -18,6 +28,7 @@ export const DATA_TYPES = {
   modelled: ['Μοντελοποιημένο', 'Τιμή από επιστημονικό μοντέλο.'],
   classified: ['Ταξινομημένο', 'Κατηγορία που αποδίδεται με βάση χάρτη ή σύστημα ταξινόμησης.'],
   estimated: ['Εκτιμώμενο', 'Προσέγγιση με δηλωμένη μέθοδο ή αβεβαιότητα.'],
+  modelDerived: ['Εκτίμηση από μοντέλο', 'Παράγωγη τιμή που υπολογίζεται από δεδομένα μοντέλου.'],
 };
 
 export const TABS = [
@@ -38,9 +49,9 @@ export const FIELDS = {
     limitations: 'Η ποιότητα της εκτίμησης εξαρτάται από τις πηγές θέσης της συσκευής.',
   } },
   elevation: { label: 'Υψόμετρο', definition: 'Ύψος της επιφάνειας ως προς τη μέση στάθμη της θάλασσας.', unit: 'μ.', type: 'modelled', source: ELEVATION_SOURCE },
-  slopeDegrees: { label: 'Κλίση σε μοίρες', definition: 'Γωνία της επιφάνειας του εδάφους ως προς το οριζόντιο επίπεδο.', unit: '°' },
-  slopePercent: { label: 'Κλίση σε ποσοστό', definition: 'Κατακόρυφη μεταβολή ως ποσοστό της οριζόντιας απόστασης.', unit: '%' },
-  aspect: { label: 'Προσανατολισμός πλαγιάς', definition: 'Κατεύθυνση προς την οποία κατέρχεται η πλαγιά.' },
+  slopeDegrees: { label: 'Κλίση σε μοίρες', definition: 'Γωνία της επιφάνειας του εδάφους ως προς το οριζόντιο επίπεδο.', unit: '°', type: 'modelDerived', source: TERRAIN_SOURCE },
+  slopePercent: { label: 'Κλίση σε ποσοστό', definition: 'Κατακόρυφη μεταβολή ως ποσοστό της οριζόντιας απόστασης.', unit: '%', type: 'modelDerived', source: TERRAIN_SOURCE },
+  aspect: { label: 'Προσανατολισμός πλαγιάς', definition: 'Κατεύθυνση προς την οποία κατέρχεται η πλαγιά.', type: 'modelDerived', source: TERRAIN_SOURCE },
   morphology: { label: 'Μορφολογία αναγλύφου', definition: 'Μορφή της επιφάνειας, όπως κορυφογραμμή, κοιλάδα ή πεδιάδα.' },
   geologicUnit: { label: 'Γεωλογική ενότητα', definition: 'Ενότητα πετρωμάτων που αποτυπώνεται στον γεωλογικό χάρτη.', type: 'classified', source: GEOLOGY_SOURCE },
   lithology: { label: 'Λιθολογία', definition: 'Τύπος ή περιγραφή του χαρτογραφημένου πετρώματος.', type: 'classified', source: GEOLOGY_SOURCE },

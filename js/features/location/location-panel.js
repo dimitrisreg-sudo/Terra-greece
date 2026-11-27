@@ -44,7 +44,7 @@ function fieldView(id) {
     const unit = result?.unit ?? field.unit;
     value.textContent = state === 'available'
       ? [result.value, unit].filter(part => part != null && part !== '').join(' ')
-      : STATUS[state];
+      : result?.message ?? STATUS[state];
     value.dataset.state = state;
     const provenance = DATA_TYPES[result?.type ?? field.type];
     type.textContent = state === 'available' ? provenance?.[0] ?? '' : '';

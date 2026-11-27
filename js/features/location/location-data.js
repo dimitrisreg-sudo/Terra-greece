@@ -1,8 +1,10 @@
-import { getElevation } from '../../services/elevation.js';
+import { getElevations } from '../../services/elevation.js';
 import { getGeologicUnit } from '../../services/macrostrat.js';
 import { GEOLOGY_SOURCE } from './fields.js';
+import { createTerrainGrid, formatAspect, terrainMetrics } from './terrain.js';
 
 const CACHE_LIMIT = 32;
+const terrainFields = ['elevation', 'slopeDegrees', 'slopePercent', 'aspect'];
 const geologyFields = ['geologicUnit', 'lithology', 'geologicAge'];
 const coordinate = value => value.toFixed(5);
 const available = (value, metadata = {}) => ({ state: 'available', value, ...metadata });
@@ -18,14 +20,31 @@ function geologyValues(unit) {
   ]));
 }
 
+async function terrainValues(point, signal) {
+  const grid = createTerrainGrid(point);
+  const values = Object.fromEntries(terrainFields.map(id => [id, { state: 'unavailable' }]));
+  if (!grid) return values;
+
+  const terrain = terrainMetrics(grid, await getElevations(grid, signal));
+  if (terrain.elevation !== undefined) values.elevation = available(Math.round(terrain.elevation));
+  if (terrain.reason) {
+    const message = terrain.reason === 'water'
+      ? 'Δεν υπολογίζεται: τουλάχιστον ένα δείγμα είναι κοντά ή κάτω από τη στάθμη της θάλασσας.'
+      : 'Δεν υπολογίζεται: λείπει έγκυρο υψόμετρο για ένα ή περισσότερα δείγματα.';
+    for (const id of terrainFields.slice(1)) values[id] = { state: 'unavailable', message };
+    return values;
+  }
+
+  const display = value => value.toLocaleString('el-GR', { maximumFractionDigits: 2 });
+  values.slopeDegrees = available(display(terrain.slopeDegrees));
+  values.slopePercent = available(display(terrain.slopePercent));
+  values.aspect = available(formatAspect(terrain.aspect));
+  return values;
+}
+
 export function createLocationData(onUpdate) {
   const providers = [
-    {
-      ids: ['elevation'], cache: new Map(), load: async (point, signal) => {
-        const value = await getElevation(point, signal);
-        return { elevation: Number.isFinite(value) ? available(Math.round(value)) : { state: 'unavailable' } };
-      },
-    },
+    { ids: terrainFields, cache: new Map(), load: terrainValues },
     {
       ids: geologyFields, cache: new Map(), load: async (point, signal) => geologyValues(await getGeologicUnit(point, signal)),
     },
