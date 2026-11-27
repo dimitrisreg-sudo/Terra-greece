@@ -27,8 +27,9 @@ function boot() {
 
     const map = createMap(leaflet);
     const layers = createLayerController(leaflet, map);
-    const selectSearchPoint = bindLocation(leaflet, map);
-    bindNavigation(layers, createSpeciesPanel(layers, selectSearchPoint), () => resetMapView(map));
+    const location = bindLocation(leaflet, map);
+    const species = createSpeciesPanel(layers, location);
+    bindNavigation(layers, species, () => resetMapView(map));
   } catch (error) {
     showFatalError(error);
   }

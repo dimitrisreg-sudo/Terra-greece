@@ -3,31 +3,58 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>Terra Greece v0.6</title>
+  <title>Terra Greece</title>
   <link rel="stylesheet" href="./vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="./assets/css/base.css">
   <link rel="stylesheet" href="./assets/css/layout.css">
   <link rel="stylesheet" href="./assets/css/components.css">
 </head>
 <body>
-  <div id="map"></div>
-  <div class="brand">🌿 Terra Greece<small>Εξερεύνηση ελληνικής φύσης · v0.6</small></div>
-  <div class="rail">
-    <button id="btnBase" title="Υπόβαθρα" aria-label="Υπόβαθρα">▧</button>
-    <button id="btnLayers" title="Επίπεδα" aria-label="Επίπεδα">◫</button>
-    <button id="btnSpecies" title="Ζώα, φυτά, μανιτάρια" aria-label="Είδη">🦉</button>
-    <button id="btnLocate" title="Η θέση μου" aria-label="Η θέση μου">⌖</button>
-    <button id="btnHome" title="Όλυμπος" aria-label="Όλυμπος">⌂</button>
-  </div>
-  <section class="sheet" id="sheet">
-    <button class="close" id="closeSheet">×</button>
-    <div id="sheetContent"></div>
-  </section>
-  <section class="info" id="info">
-    <button class="close" id="closeInfo">×</button>
-    <div id="infoContent"></div>
-  </section>
-  <button class="pin" id="pin">📍 Επίλεξε σημείο στον χάρτη</button>
+  <main class="atlas">
+    <aside class="navigation" aria-label="Πλοήγηση Terra Greece">
+      <div class="brand"><span aria-hidden="true">TG</span><h1>Terra Greece</h1></div>
+      <div class="rail">
+        <button id="btnLocate" class="nav-button" type="button" title="Η θέση μου" aria-label="Η θέση μου">
+          <span class="nav-icon" aria-hidden="true">⌖</span><span class="nav-label">Η θέση μου</span>
+        </button>
+        <button id="menuToggle" class="nav-button" type="button" aria-controls="atlasLinks" aria-expanded="false" aria-label="Άνοιγμα μενού">
+          <span class="nav-icon" aria-hidden="true">☰</span><span class="nav-label">Σύμπτυξη μενού</span>
+        </button>
+      </div>
+      <nav class="nav-links" id="atlasLinks" aria-label="Ενότητες άτλαντα">
+        <button id="btnBase" class="nav-button" type="button" title="Χάρτης" aria-label="Χάρτης" aria-controls="sheet" aria-expanded="false"><span class="nav-icon" aria-hidden="true">▧</span><span class="nav-label">Χάρτης</span></button>
+        <button id="btnLayers" class="nav-button" type="button" title="Θεματικές ενότητες" aria-label="Θεματικές ενότητες" aria-controls="sheet" aria-expanded="false"><span class="nav-icon" aria-hidden="true">◫</span><span class="nav-label">Θεματικές ενότητες</span></button>
+        <button id="btnSpecies" class="nav-button" type="button" title="Εξερεύνηση ειδών" aria-label="Εξερεύνηση ειδών" aria-controls="sheet" aria-expanded="false"><span class="nav-icon" aria-hidden="true">♧</span><span class="nav-label">Εξερεύνηση ειδών</span></button>
+        <div class="nav-future" title="Μονοπάτια · Σύντομα"><span class="nav-icon" aria-hidden="true">↝</span><span class="nav-label"><span>Μονοπάτια</span> <small>Σύντομα</small></span></div>
+        <div class="nav-future" title="Εργαλεία · Σύντομα"><span class="nav-icon" aria-hidden="true">◇</span><span class="nav-label"><span>Εργαλεία</span> <small>Σύντομα</small></span></div>
+        <div class="nav-future" title="Αγαπημένα · Σύντομα"><span class="nav-icon" aria-hidden="true">☆</span><span class="nav-label"><span>Αγαπημένα</span> <small>Σύντομα</small></span></div>
+        <button id="btnAbout" class="nav-button" type="button" title="Πληροφορίες" aria-label="Πληροφορίες" aria-controls="sheet" aria-expanded="false"><span class="nav-icon" aria-hidden="true">ⓘ</span><span class="nav-label">Πληροφορίες</span></button>
+        <div class="nav-map-actions">
+          <button id="btnHome" class="nav-button" type="button" title="Επιστροφή στον Όλυμπο" aria-label="Επιστροφή στον Όλυμπο"><span class="nav-icon" aria-hidden="true">⌂</span><span class="nav-label">Όλυμπος</span></button>
+          <button id="pin" class="nav-button" type="button" title="Επιλογή κέντρου χάρτη" aria-label="Επιλογή κέντρου χάρτη"><span class="nav-icon" aria-hidden="true">⊙</span><span class="nav-label">Επιλογή κέντρου</span></button>
+        </div>
+      </nav>
+    </aside>
+    <div class="map-stage">
+      <div id="map" aria-label="Διαδραστικός χάρτης της Ελλάδας"></div>
+      <span class="map-brand" aria-hidden="true">Terra Greece</span>
+      <div id="gpsStatus" class="gps-status" role="status"></div>
+    </div>
+    <section class="sheet panel" id="sheet" aria-labelledby="sheetTitle" hidden>
+      <header class="panel-header">
+        <h2 id="sheetTitle" tabindex="-1"></h2>
+        <button class="close" id="closeSheet" type="button" aria-label="Κλείσιμο ενότητας">×</button>
+      </header>
+      <div class="panel-content" id="sheetContent"></div>
+    </section>
+    <section class="info panel" id="info" aria-labelledby="infoTitle" hidden>
+      <header class="panel-header">
+        <h2 id="infoTitle" tabindex="-1">Πληροφορίες σημείου</h2>
+        <button class="close" id="closeInfo" type="button" aria-label="Κλείσιμο πληροφοριών σημείου">×</button>
+      </header>
+      <div class="panel-content" id="infoContent"></div>
+    </section>
+  </main>
   <script src="./vendor/leaflet/leaflet.js"></script>
   <script type="module" src="./js/app.js"></script>
 </body>

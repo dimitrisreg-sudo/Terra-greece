@@ -1,12 +1,25 @@
 :root {
-  font-family: system-ui,-apple-system,sans-serif;
-  color: #18382e;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #303630;
+  background: #f5f4ef;
+  --forest: #344c3d;
+  --olive: #829477;
+  --paper: #f5f4ef;
+  --white: #fff;
+  --ink: #303630;
+  --earth: #b49a77;
+  --line: #dce1d8;
+  --muted: #526050;
+  --shadow: 0 8px 25px #1c2d2524;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; }
+button, input, select { font: inherit; }
+button { color: inherit; }
+button:not(:disabled), select { cursor: pointer; }
+[hidden] { display: none !important; }
+:where(button, input, select, a):focus-visible {
+  outline: 3px solid var(--forest);
+  outline-offset: 2px;
 }
